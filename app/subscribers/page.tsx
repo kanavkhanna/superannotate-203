@@ -1,5 +1,7 @@
 "use client"
 
+import React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -433,19 +435,23 @@ export default function SubscribersPage() {
       // Simulate API call with a delay
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      // Randomly simulate an error (20% chance)
-      if (Math.random() < 0.2) {
-        throw new Error("Network error during export")
-      }
+      // Generate file name
+      const fileName = `subscribers_${new Date().toISOString().split("T")[0]}.${format}`
 
       // Success case
-      const fileName = `subscribers_${new Date().toISOString().split("T")[0]}.${format}`
       toast.dismiss(loadingToast)
       toast.success("Export completed", {
         description: `${subscribers.length} subscribers exported to ${fileName}`,
       })
 
-      console.log(`Exported ${subscribers.length} subscribers to ${fileName}`)
+      // Simulate file download
+      const element = document.createElement("a")
+      element.setAttribute("href", "data:text/plain;charset=utf-8,")
+      element.setAttribute("download", fileName)
+      element.style.display = "none"
+      document.body.appendChild(element)
+      element.click()
+      document.body.removeChild(element)
     } catch (error) {
       // Error case
       toast.dismiss(loadingToast)
@@ -549,20 +555,39 @@ export default function SubscribersPage() {
     )
   }
 
+  // Mobile view detection
+  const [isMobileView, setIsMobileView] = useState(false)
+
+  // Check if we're in mobile view on component mount and window resize
+  React.useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobileView(window.innerWidth < 640)
+    }
+
+    // Initial check
+    checkMobileView()
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobileView)
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobileView)
+  }, [])
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen w-full flex-col overflow-x-hidden">
       <DashboardHeader
         title="Subscribers"
         description="Manage your subscribers and their meal plans"
         actions={
           <Button aria-label="Add new subscriber" className="gap-1 rounded-full" onClick={handleAddSubscriber}>
             <UserPlus className="h-4 w-4" aria-hidden="true" />
-            Add Subscriber
+            <span className="hidden sm:inline">Add Subscriber</span>
           </Button>
         }
       />
-      <div className="dashboard-grid">
-        <Card className="stat-card">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-2 sm:p-4 w-full">
+        <Card className="w-full transition-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Subscribers</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -570,7 +595,7 @@ export default function SubscribersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,248</div>
+            <div className="text-xl sm:text-2xl font-bold">1,248</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">+124</span>
               <span>this month</span>
@@ -578,7 +603,7 @@ export default function SubscribersPage() {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="w-full transition-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Subscribers</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -586,7 +611,7 @@ export default function SubscribersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,132</div>
+            <div className="text-xl sm:text-2xl font-bold">1,132</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">90.7%</span>
               <span>of total</span>
@@ -594,7 +619,7 @@ export default function SubscribersPage() {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="w-full transition-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Churn Rate</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -602,17 +627,15 @@ export default function SubscribersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.4%</div>
+            <div className="text-xl sm:text-2xl font-bold">2.4%</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <span className="rounded-full bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
-                -0.3%
-              </span>
+              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">-0.3%</span>
               <span>from last month</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="w-full transition-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg. Subscription Length</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -620,7 +643,7 @@ export default function SubscribersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8.2 mo</div>
+            <div className="text-xl sm:text-2xl font-bold">8.2 mo</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">+0.5</span>
               <span>from last quarter</span>
@@ -628,10 +651,10 @@ export default function SubscribersPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="dashboard-section">
-        <Card className="table-container">
+      <div className="p-2 sm:p-4 w-full">
+        <Card className="w-full">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
               <div>
                 <CardTitle>Subscriber List</CardTitle>
                 <CardDescription>View and manage all your subscribers</CardDescription>
@@ -641,7 +664,7 @@ export default function SubscribersPage() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-1 rounded-full">
                       <Download className="h-4 w-4" />
-                      Export
+                      <span className="hidden sm:inline">Export</span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-56" align="end">
@@ -703,13 +726,15 @@ export default function SubscribersPage() {
                       className={`gap-1 rounded-full ${activeFilterCount > 0 ? "bg-primary/20 text-primary" : ""}`}
                     >
                       <Filter className="h-4 w-4" />
-                      Filter
+                      <span className="hidden sm:inline">Filter</span>
                       {activeFilterCount > 0 && (
-                        <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-[10px]">{activeFilterCount}</Badge>
+                        <Badge className="ml-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px]">
+                          {activeFilterCount}
+                        </Badge>
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80" align="end">
+                  <PopoverContent className="w-[280px] sm:w-80" align="end">
                     <div className="grid gap-4">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium leading-none">Filter Subscribers</h4>
@@ -875,8 +900,8 @@ export default function SubscribersPage() {
           </CardHeader>
           <CardContent>
             {activeFilterCount > 0 && (
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                <span className="text-xs sm:text-sm text-muted-foreground">Active filters:</span>
 
                 {/* Status filter badges */}
                 {Object.entries(filters.status)
@@ -966,40 +991,75 @@ export default function SubscribersPage() {
               </div>
             )}
 
-            <Table aria-label="Subscriber list">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Subscriber</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>Next Delivery</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSubscribers.length > 0 ? (
-                  filteredSubscribers.map((subscriber) => (
-                    <TableRow key={subscriber.id} className="hover:bg-muted/50">
-                      <TableCell className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border border-border">
+            {isMobileView ? (
+              // Mobile card view for subscribers
+              <div className="space-y-3">
+                {filteredSubscribers.map((subscriber) => (
+                  <div key={subscriber.id} className="mobile-table-card">
+                    <div className="mobile-table-card-header">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8 border border-border">
                           <AvatarImage
-                            src={`/placeholder.svg?height=36&width=36&text=${subscriber.avatar}`}
+                            src={`/placeholder.svg?height=32&width=32&text=${subscriber.avatar}`}
                             alt={subscriber.name}
                           />
                           <AvatarFallback className="text-xs">{subscriber.avatar}</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{subscriber.name}</span>
-                          <span className="text-xs text-muted-foreground">{subscriber.email}</span>
+                        <div>
+                          <div className="font-medium">{subscriber.name}</div>
+                          <div className="text-xs text-muted-foreground">{subscriber.email}</div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-primary/10 text-primary">
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">More options</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleViewDetails(subscriber)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditSubscriber(subscriber)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit subscription
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSendEmail(subscriber)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Send email
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {subscriber.status !== "Cancelled" ? (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleCancelSubscription(subscriber)}
+                            >
+                              Cancel subscription
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteAccount(subscriber.id)}
+                            >
+                              Delete account
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="mobile-table-card-content mt-2">
+                      <div>
+                        <div className="mobile-table-card-label">Plan</div>
+                        <Badge variant="outline" className="bg-primary/10 text-primary mt-1">
                           {subscriber.plan}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
+                      </div>
+                      <div>
+                        <div className="mobile-table-card-label">Status</div>
                         <Badge
                           variant={
                             subscriber.status === "Active"
@@ -1010,178 +1070,277 @@ export default function SubscribersPage() {
                           }
                           className={
                             subscriber.status === "Active"
-                              ? "bg-primary/20 text-primary hover:bg-primary/30"
+                              ? "bg-primary/20 text-primary hover:bg-primary/30 mt-1"
                               : subscriber.status === "Paused"
-                                ? "bg-amber-500/20 text-amber-600 hover:bg-amber-500/30 dark:text-amber-400"
-                                : ""
+                                ? "bg-amber-500/20 text-amber-600 hover:bg-amber-500/30 dark:text-amber-400 mt-1"
+                                : "mt-1"
                           }
                         >
                           {subscriber.status}
                         </Badge>
-                      </TableCell>
-                      <TableCell>{subscriber.startDate}</TableCell>
-                      <TableCell>{subscriber.nextDelivery}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-full"
-                            onClick={() => handleEditSubscriber(subscriber)}
-                          >
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit {subscriber.name}</span>
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More options</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleViewDetails(subscriber)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditSubscriber(subscriber)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit subscription
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleSendEmail(subscriber)}>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Send email
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              {subscriber.status !== "Cancelled" ? (
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => handleCancelSubscription(subscriber)}
-                                >
-                                  Cancel subscription
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteAccount(subscriber.id)}
-                                >
-                                  Delete account
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <div className="rounded-full bg-muted p-3">
-                          <Users className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm font-medium">No subscribers found</p>
-                          <p className="text-sm text-muted-foreground">
-                            Try adjusting your filters or add a new subscriber
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
-                          Reset filters
-                        </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                      <div>
+                        <div className="mobile-table-card-label">Start Date</div>
+                        <div className="mobile-table-card-value">{subscriber.startDate}</div>
+                      </div>
+                      <div>
+                        <div className="mobile-table-card-label">Next Delivery</div>
+                        <div className="mobile-table-card-value">{subscriber.nextDelivery}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Desktop table view
+              <div className="w-full overflow-auto">
+                <Table className="min-w-[800px] lg:min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Subscriber</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Start Date</TableHead>
+                      <TableHead>Next Delivery</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredSubscribers.length > 0 ? (
+                      filteredSubscribers.map((subscriber) => (
+                        <TableRow key={subscriber.id} className="hover:bg-muted/50">
+                          <TableCell className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9 border border-border">
+                              <AvatarImage
+                                src={`/placeholder.svg?height=36&width=36&text=${subscriber.avatar}`}
+                                alt={subscriber.name}
+                              />
+                              <AvatarFallback className="text-xs">{subscriber.avatar}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{subscriber.name}</span>
+                              <span className="text-xs text-muted-foreground">{subscriber.email}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="bg-primary/10 text-primary">
+                              {subscriber.plan}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                subscriber.status === "Active"
+                                  ? "default"
+                                  : subscriber.status === "Paused"
+                                    ? "secondary"
+                                    : "destructive"
+                              }
+                              className={
+                                subscriber.status === "Active"
+                                  ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                  : subscriber.status === "Paused"
+                                    ? "bg-amber-500/20 text-amber-600 hover:bg-amber-500/30 dark:text-amber-400"
+                                    : ""
+                              }
+                            >
+                              {subscriber.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{subscriber.startDate}</TableCell>
+                          <TableCell>{subscriber.nextDelivery}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
+                                onClick={() => handleEditSubscriber(subscriber)}
+                              >
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">Edit {subscriber.name}</span>
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">More options</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleViewDetails(subscriber)}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleEditSubscriber(subscriber)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit subscription
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleSendEmail(subscriber)}>
+                                    <Mail className="mr-2 h-4 w-4" />
+                                    Send email
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  {subscriber.status !== "Cancelled" ? (
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() => handleCancelSubscription(subscriber)}
+                                    >
+                                      Cancel subscription
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() => handleDeleteAccount(subscriber.id)}
+                                    >
+                                      Delete account
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <div className="rounded-full bg-muted p-3">
+                              <Users className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-medium">No subscribers found</p>
+                              <p className="text-sm text-muted-foreground">
+                                Try adjusting your filters or add a new subscriber
+                              </p>
+                            </div>
+                            <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
+                              Reset filters
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {filteredSubscribers.length === 0 && (
+              <div className="flex flex-col items-center justify-center gap-2 py-8">
+                <div className="rounded-full bg-muted p-3">
+                  <Users className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium">No subscribers found</p>
+                  <p className="text-sm text-muted-foreground">Try adjusting your filters or add a new subscriber</p>
+                </div>
+                <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
+                  Reset filters
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Add Subscriber Dialog */}
+      {/* Dialogs with mobile optimizations */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Add New Subscriber</DialogTitle>
-            <DialogDescription>Create a new subscriber for your meal subscription service.</DialogDescription>
           </DialogHeader>
+          <DialogDescription>Create a new subscriber to start sending meal plans.</DialogDescription>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="name" className="sm:text-right">
                 Name
               </Label>
-              <div className="col-span-3">
-                <Input
-                  id="name"
-                  value={newSubscriber.name}
-                  onChange={(e) => handleNewSubscriberChange("name", e.target.value)}
-                  placeholder="Enter subscriber name"
-                  className={formErrors.name ? "border-destructive" : ""}
-                />
-                {formErrors.name && <p className="mt-1 text-xs text-destructive">{formErrors.name}</p>}
-              </div>
+              <Input
+                type="text"
+                id="name"
+                value={newSubscriber.name}
+                onChange={(e) => handleNewSubscriberChange("name", e.target.value)}
+                className="sm:col-span-3"
+              />
+              {formErrors.name && (
+                <p className="col-span-1 sm:col-span-4 mt-1 text-sm text-red-500">{formErrors.name}</p>
+              )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="email" className="sm:text-right">
                 Email
               </Label>
-              <div className="col-span-3">
-                <Input
-                  id="email"
-                  type="email"
-                  value={newSubscriber.email}
-                  onChange={(e) => handleNewSubscriberChange("email", e.target.value)}
-                  placeholder="Enter email address"
-                  className={formErrors.email ? "border-destructive" : ""}
-                />
-                {formErrors.email && <p className="mt-1 text-xs text-destructive">{formErrors.email}</p>}
-              </div>
+              <Input
+                type="email"
+                id="email"
+                value={newSubscriber.email}
+                onChange={(e) => handleNewSubscriberChange("email", e.target.value)}
+                className="sm:col-span-3"
+              />
+              {formErrors.email && (
+                <p className="col-span-1 sm:col-span-4 mt-1 text-sm text-red-500">{formErrors.email}</p>
+              )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="plan" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="plan" className="sm:text-right">
                 Plan
               </Label>
-              <div className="col-span-3">
-                <Select onValueChange={(value) => handleNewSubscriberChange("plan", value)}>
-                  <SelectTrigger className={formErrors.plan ? "border-destructive" : ""}>
-                    <SelectValue placeholder="Select a meal plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mealPlans.map((plan) => (
-                      <SelectItem key={plan.id} value={plan.name}>
-                        {plan.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {formErrors.plan && <p className="mt-1 text-xs text-destructive">{formErrors.plan}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
-              <Select
-                defaultValue={newSubscriber.status}
-                onValueChange={(value) => handleNewSubscriberChange("status", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select status" />
+              <Select onValueChange={(value) => handleNewSubscriberChange("plan", value)}>
+                <SelectTrigger className="sm:col-span-3">
+                  <SelectValue placeholder="Select a plan" defaultValue={newSubscriber.plan} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Paused">Paused</SelectItem>
+                  {mealPlans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.name}>
+                      {plan.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {formErrors.plan && (
+                <p className="col-span-1 sm:col-span-4 mt-1 text-sm text-red-500">{formErrors.plan}</p>
+              )}
             </div>
           </div>
-          <DialogFooter>
-            <Button type="submit" onClick={handleSubmitSubscriber} disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Subscriber"}
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsAddDialogOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleSubmitSubscriber} disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? (
+                <>
+                  Adding...
+                  <svg className="ml-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8A8 8 0 0 1 12 20Z"
+                      opacity=".5"
+                    />
+                    <path fill="currentColor" d="M20 12h2A10 10 0 0 0 12 2V4A8 8 0 0 1 20 12Z">
+                      <animateTransform
+                        attributeName="transform"
+                        dur="0.75s"
+                        from="0 12 0"
+                        repeatCount="indefinite"
+                        to="360 12 0"
+                        type="rotate"
+                      />
+                    </path>
+                  </svg>
+                </>
+              ) : (
+                "Add Subscriber"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1189,90 +1348,118 @@ export default function SubscribersPage() {
 
       {/* Edit Subscriber Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Edit Subscriber</DialogTitle>
-            <DialogDescription>Update subscriber information and subscription details.</DialogDescription>
           </DialogHeader>
-          {selectedSubscriber && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Name
-                </Label>
-                <div className="col-span-3">
-                  <Input
-                    id="edit-name"
-                    value={selectedSubscriber.name}
-                    onChange={(e) => handleEditSubscriberChange("name", e.target.value)}
-                    placeholder="Enter subscriber name"
-                    className={formErrors.name ? "border-destructive" : ""}
-                  />
-                  {formErrors.name && <p className="mt-1 text-xs text-destructive">{formErrors.name}</p>}
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-email" className="text-right">
-                  Email
-                </Label>
-                <div className="col-span-3">
-                  <Input
-                    id="edit-email"
-                    type="email"
-                    value={selectedSubscriber.email}
-                    onChange={(e) => handleEditSubscriberChange("email", e.target.value)}
-                    placeholder="Enter email address"
-                    className={formErrors.email ? "border-destructive" : ""}
-                  />
-                  {formErrors.email && <p className="mt-1 text-xs text-destructive">{formErrors.email}</p>}
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-plan" className="text-right">
-                  Plan
-                </Label>
-                <div className="col-span-3">
-                  <Select
-                    value={selectedSubscriber.plan}
-                    onValueChange={(value) => handleEditSubscriberChange("plan", value)}
-                  >
-                    <SelectTrigger className={formErrors.plan ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Select a meal plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mealPlans.map((plan) => (
-                        <SelectItem key={plan.id} value={plan.name}>
-                          {plan.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formErrors.plan && <p className="mt-1 text-xs text-destructive">{formErrors.plan}</p>}
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-status" className="text-right">
-                  Status
-                </Label>
-                <Select
-                  value={selectedSubscriber.status}
-                  onValueChange={(value) => handleEditSubscriberChange("status", value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Paused">Paused</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <DialogDescription>Make changes to the subscriber's information.</DialogDescription>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="name" className="sm:text-right">
+                Name
+              </Label>
+              <Input
+                type="text"
+                id="name"
+                value={selectedSubscriber?.name || ""}
+                onChange={(e) => handleEditSubscriberChange("name", e.target.value)}
+                className="sm:col-span-3"
+              />
+              {formErrors.name && (
+                <p className="col-span-1 sm:col-span-4 mt-1 text-sm text-red-500">{formErrors.name}</p>
+              )}
             </div>
-          )}
-          <DialogFooter>
-            <Button type="submit" onClick={handleUpdateSubscriber} disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Subscriber"}
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="email" className="sm:text-right">
+                Email
+              </Label>
+              <Input
+                type="email"
+                id="email"
+                value={selectedSubscriber?.email || ""}
+                onChange={(e) => handleEditSubscriberChange("email", e.target.value)}
+                className="sm:col-span-3"
+              />
+              {formErrors.email && (
+                <p className="col-span-1 sm:col-span-4 mt-1 text-sm text-red-500">{formErrors.email}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="plan" className="sm:text-right">
+                Plan
+              </Label>
+              <Select
+                onValueChange={(value) => handleEditSubscriberChange("plan", value)}
+                defaultValue={selectedSubscriber?.plan}
+              >
+                <SelectTrigger className="sm:col-span-3">
+                  <SelectValue placeholder="Select a plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mealPlans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.name}>
+                      {plan.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formErrors.plan && (
+                <p className="col-span-1 sm:col-span-4 mt-1 text-sm text-red-500">{formErrors.plan}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="status" className="sm:text-right">
+                Status
+              </Label>
+              <Select
+                onValueChange={(value) => handleEditSubscriberChange("status", value)}
+                defaultValue={selectedSubscriber?.status}
+              >
+                <SelectTrigger className="sm:col-span-3">
+                  <SelectValue placeholder="Select a status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Paused">Paused</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsEditDialogOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleUpdateSubscriber} disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? (
+                <>
+                  Updating...
+                  <svg className="ml-2 h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8A8 8 0 0 1 12 20Z"
+                      opacity=".5"
+                    />
+                    <path fill="currentColor" d="M20 12h2A10 10 0 0 0 12 2V4A8 8 0 0 1 20 12Z">
+                      <animateTransform
+                        attributeName="transform"
+                        dur="0.75s"
+                        from="0 12 0"
+                        repeatCount="indefinite"
+                        to="360 12 0"
+                        type="rotate"
+                      />
+                    </path>
+                  </svg>
+                </>
+              ) : (
+                "Update Subscriber"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1280,128 +1467,58 @@ export default function SubscribersPage() {
 
       {/* View Details Dialog */}
       <Dialog open={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Subscriber Details</DialogTitle>
-            <DialogDescription>View detailed information about this subscriber.</DialogDescription>
           </DialogHeader>
-          {selectedSubscriber && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-2 border-primary/20">
-                  <AvatarImage
-                    src={`/placeholder.svg?height=64&width=64&text=${selectedSubscriber.avatar}`}
-                    alt={selectedSubscriber.name}
-                  />
-                  <AvatarFallback className="text-lg">{selectedSubscriber.avatar}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="text-lg font-semibold">{selectedSubscriber.name}</h3>
-                  <p className="text-sm text-muted-foreground">{selectedSubscriber.email}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Subscriber ID</p>
-                  <p>{selectedSubscriber.id}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <Badge
-                    variant={
-                      selectedSubscriber.status === "Active"
-                        ? "default"
-                        : selectedSubscriber.status === "Paused"
-                          ? "secondary"
-                          : "destructive"
-                    }
-                    className={
-                      selectedSubscriber.status === "Active"
-                        ? "bg-primary/20 text-primary mt-1"
-                        : selectedSubscriber.status === "Paused"
-                          ? "bg-amber-500/20 text-amber-600 mt-1 dark:text-amber-400"
-                          : "mt-1"
-                    }
-                  >
-                    {selectedSubscriber.status}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Subscription Plan</p>
-                  <p>{selectedSubscriber.plan}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Start Date</p>
-                  <p>{selectedSubscriber.startDate}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Next Delivery</p>
-                  <p>{selectedSubscriber.nextDelivery}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Subscription Length</p>
-                  <p>
-                    {(() => {
-                      const startDate = new Date(selectedSubscriber.startDate)
-                      const today = new Date()
-                      const diffTime = Math.abs(today - startDate)
-                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                      const diffMonths = Math.floor(diffDays / 30)
-                      return diffMonths > 0 ? `${diffMonths} months` : `${diffDays} days`
-                    })()}
-                  </p>
-                </div>
-              </div>
+          <DialogDescription>View detailed information about the subscriber.</DialogDescription>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 sm:gap-4">
+              <Label className="sm:text-right">Name</Label>
+              <span>{selectedSubscriber?.name}</span>
             </div>
-          )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 sm:gap-4">
+              <Label className="sm:text-right">Email</Label>
+              <span>{selectedSubscriber?.email}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 sm:gap-4">
+              <Label className="sm:text-right">Plan</Label>
+              <span>{selectedSubscriber?.plan}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 sm:gap-4">
+              <Label className="sm:text-right">Status</Label>
+              <span>{selectedSubscriber?.status}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 sm:gap-4">
+              <Label className="sm:text-right">Start Date</Label>
+              <span>{selectedSubscriber?.startDate}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-2 sm:gap-4">
+              <Label className="sm:text-right">Next Delivery</Label>
+              <span>{selectedSubscriber?.nextDelivery}</span>
+            </div>
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewDetailsDialogOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setIsViewDetailsDialogOpen(false)}>
               Close
-            </Button>
-            <Button
-              onClick={() => {
-                setIsViewDetailsDialogOpen(false)
-                handleEditSubscriber(selectedSubscriber)
-              }}
-            >
-              Edit Subscriber
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Cancel Subscription Confirmation Dialog */}
+
+      {/* Confirm Cancel Dialog */}
       <Dialog open={isConfirmCancelDialogOpen} onOpenChange={setIsConfirmCancelDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[425px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Cancel Subscription</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel this subscription? This will immediately stop future deliveries.
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to cancel this subscription?</DialogDescription>
           </DialogHeader>
-          {subscriberToCancel && (
-            <div className="py-4">
-              <div className="flex items-center gap-3 rounded-lg border p-3">
-                <Avatar className="h-10 w-10 border border-border">
-                  <AvatarImage
-                    src={`/placeholder.svg?height=40&width=40&text=${subscriberToCancel.avatar}`}
-                    alt={subscriberToCancel.name}
-                  />
-                  <AvatarFallback>{subscriberToCancel.avatar}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{subscriberToCancel.name}</p>
-                  <p className="text-sm text-muted-foreground">{subscriberToCancel.plan}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsConfirmCancelDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsConfirmCancelDialogOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmCancelSubscription}>
-              Yes, Cancel Subscription
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>

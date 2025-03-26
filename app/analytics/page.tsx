@@ -30,7 +30,9 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">$24,568</div>
-                  <p className="text-xs text-muted-foreground">+18% from last month</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-500">+18% from last month</span>
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -39,7 +41,9 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">1,132</div>
-                  <p className="text-xs text-muted-foreground">+4% from last month</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-500">+4% from last month</span>
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -48,7 +52,9 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">$135.42</div>
-                  <p className="text-xs text-muted-foreground">+2% from last month</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-500">+2% from last month</span>
+                  </p>
                 </CardContent>
               </Card>
               <Card>
@@ -57,7 +63,9 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">92.6%</div>
-                  <p className="text-xs text-muted-foreground">+1.2% from last month</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-500">+1.2% from last month</span>
+                  </p>
                 </CardContent>
               </Card>
             </div>

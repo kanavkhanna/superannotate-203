@@ -88,7 +88,11 @@ interface UpcomingDeliveriesProps {
 export function UpcomingDeliveries({ onViewAll, onViewLess, showAll = false }: UpcomingDeliveriesProps) {
   const [viewAll, setViewAll] = useState(showAll)
 
-  const displayedDeliveries = viewAll ? upcomingDeliveries : upcomingDeliveries.slice(0, 5)
+  // Sort deliveries by date
+
+  const displayedDeliveries = viewAll
+    ? [...upcomingDeliveries].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : [...upcomingDeliveries].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 5)
 
   const handleToggleView = () => {
     const newState = !viewAll

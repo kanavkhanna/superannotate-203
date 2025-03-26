@@ -1,5 +1,7 @@
 "use client"
 import Link from "next/link"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+
 import { usePathname } from "next/navigation"
 import { BarChart3, Calendar, CreditCard, Home, Package, ShoppingBasket, Users } from "lucide-react"
 import {
@@ -17,7 +19,6 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -26,8 +27,6 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { useState } from "react"
 import { UserProfileDialog } from "@/components/user-profile-dialog"
 import { UserSettingsDialog } from "@/components/user-settings-dialog"
-import { LogoutConfirmDialog } from "@/components/logout-confirm-dialog"
-import { toast } from "sonner"
 
 const menuItems = [
   {
@@ -71,15 +70,6 @@ export function DashboardSidebar() {
   const pathname = usePathname()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
-
-  const handleLogout = () => {
-    // In a real app, this would handle the actual logout process
-    toast.success("Logged out successfully", {
-      description: "You have been logged out of your account.",
-    })
-    setIsLogoutConfirmOpen(false)
-  }
 
   return (
     <Sidebar aria-label="Main navigation" variant="floating" className="border-r border-border/40">
@@ -134,21 +124,19 @@ export function DashboardSidebar() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>Profile</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>Settings</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setIsLogoutConfirmOpen(true)}>Log out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>
-      <SidebarTrigger className="absolute right-4 top-4 md:hidden" aria-label="Toggle sidebar" />
+      <SidebarTrigger
+        className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg md:hidden"
+        aria-label="Toggle sidebar"
+      />
 
       {/* Profile Dialog */}
       <UserProfileDialog open={isProfileOpen} onOpenChange={setIsProfileOpen} />
 
       {/* Settings Dialog */}
       <UserSettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-
-      {/* Logout Confirmation Dialog */}
-      <LogoutConfirmDialog open={isLogoutConfirmOpen} onOpenChange={setIsLogoutConfirmOpen} onConfirm={handleLogout} />
     </Sidebar>
   )
 }

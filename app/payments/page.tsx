@@ -1,14 +1,17 @@
 "use client"
 
+import React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { Download, FileDown, AlertCircle } from "lucide-react"
+import { Download, FileDown, AlertCircle, ChevronRight } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { toast } from "sonner"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const initialPayments = [
   {
@@ -89,7 +92,70 @@ export default function PaymentsPage() {
   const [payments] = useState(initialPayments)
   const [isExportPopoverOpen, setIsExportPopoverOpen] = useState(false)
   const [exportFormat, setExportFormat] = useState("csv")
+  const [isMobileView, setIsMobileView] = useState(false)
 
+  // Check if we're in mobile view on component mount and window resize
+  React.useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobileView(window.innerWidth < 768)
+    }
+
+    // Initial check
+    checkMobileView()
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobileView)
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobileView)
+  }, [])
+
+  // Function to generate file content based on format
+  function generateFileContent(payments, format) {
+    switch (format) {
+      case "csv":
+        // Generate CSV content
+        const headers = ["ID", "Customer", "Subscription", "Amount", "Method", "Date", "Status"]
+        const csvContent = [
+          headers.join(","),
+          ...payments.map((p) =>
+            [p.id, p.customer, p.subscription, p.amount.toFixed(2), p.method, p.date, p.status].join(","),
+          ),
+        ].join("\n")
+        return { content: csvContent, type: "text/csv" }
+
+      case "json":
+        // Generate JSON content
+        return { content: JSON.stringify(payments, null, 2), type: "application/json" }
+
+      case "excel":
+        // For simplicity, we'll just use CSV with an Excel MIME type
+        const excelHeaders = ["ID", "Customer", "Subscription", "Amount", "Method", "Date", "Status"]
+        const excelContent = [
+          excelHeaders.join(","),
+          ...payments.map((p) =>
+            [p.id, p.customer, p.subscription, p.amount.toFixed(2), p.method, p.date, p.status].join(","),
+          ),
+        ].join("\n")
+        return { content: excelContent, type: "application/vnd.ms-excel" }
+
+      case "pdf":
+        // For PDF, we'll just create a simple text representation
+        // In a real app, you'd use a PDF generation library
+        const pdfContent = `Payment Report\n\n${payments
+          .map(
+            (p) =>
+              `${p.id} | ${p.customer} | ${p.subscription} | $${p.amount.toFixed(2)} | ${p.method} | ${p.date} | ${p.status}`,
+          )
+          .join("\n")}`
+        return { content: pdfContent, type: "application/pdf" }
+
+      default:
+        return { content: JSON.stringify(payments, null, 2), type: "application/json" }
+    }
+  }
+
+  // Handle export function
   const handleExport = async (format: string) => {
     // Show loading toast
     const loadingToast = toast.loading(`Exporting ${payments.length} payments...`)
@@ -103,8 +169,34 @@ export default function PaymentsPage() {
         throw new Error("Network error during export")
       }
 
-      // Success case
+      // Generate the file name
       const fileName = `payments_${new Date().toISOString().split("T")[0]}.${format}`
+
+      // Generate file content
+      const { content, type } = generateFileContent(payments, format)
+
+      // Create a blob with the file content
+      const blob = new Blob([content], { type })
+
+      // Create a URL for the blob
+      const url = URL.createObjectURL(blob)
+
+      // Create a temporary link element
+      const link = document.createElement("a")
+      link.href = url
+      link.download = fileName
+
+      // Append the link to the body
+      document.body.appendChild(link)
+
+      // Trigger the download
+      link.click()
+
+      // Clean up
+      URL.revokeObjectURL(url)
+      document.body.removeChild(link)
+
+      // Success case
       toast.dismiss(loadingToast)
       toast.success("Export completed", {
         description: `${payments.length} payments exported to ${fileName}`,
@@ -125,6 +217,13 @@ export default function PaymentsPage() {
     }
   }
 
+  // Function to render payment status badge
+  const renderStatusBadge = (status) => (
+    <Badge variant={status === "Completed" ? "default" : status === "Pending" ? "secondary" : "destructive"}>
+      {status}
+    </Badge>
+  )
+
   return (
     <div className="flex flex-col">
       <DashboardHeader
@@ -135,7 +234,7 @@ export default function PaymentsPage() {
             <PopoverTrigger asChild>
               <Button aria-label="Export payment data" className="gap-1 rounded-full">
                 <Download className="h-4 w-4" aria-hidden="true" />
-                Export
+                <span className="hidden sm:inline">Export</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-56" align="end">
@@ -189,7 +288,9 @@ export default function PaymentsPage() {
           </Popover>
         }
       />
-      <div className="p-4 grid gap-4 md:grid-cols-3">
+
+      {/* Stats Cards - Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -208,7 +309,7 @@ export default function PaymentsPage() {
             <p className="text-xs text-muted-foreground">8 pending transactions</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="sm:col-span-2 md:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Failed Payments</CardTitle>
           </CardHeader>
@@ -218,6 +319,8 @@ export default function PaymentsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment History - Responsive Table/Cards */}
       <div className="p-4">
         <Card>
           <CardHeader>
@@ -225,44 +328,75 @@ export default function PaymentsPage() {
             <CardDescription>View all payment transactions</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table aria-label="Payment history">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Subscription</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            {isMobileView ? (
+              // Mobile view - Card layout
+              <div className="space-y-4">
                 {payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{payment.id}</TableCell>
-                    <TableCell>{payment.customer}</TableCell>
-                    <TableCell>{payment.subscription}</TableCell>
-                    <TableCell>${payment.amount.toFixed(2)}</TableCell>
-                    <TableCell>{payment.method}</TableCell>
-                    <TableCell>{payment.date}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          payment.status === "Completed"
-                            ? "default"
-                            : payment.status === "Pending"
-                              ? "secondary"
-                              : "destructive"
-                        }
-                      >
-                        {payment.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+                  <Card key={payment.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium">{payment.customer}</p>
+                          <p className="text-sm text-muted-foreground">{payment.id}</p>
+                        </div>
+                        {renderStatusBadge(payment.status)}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Amount</p>
+                          <p className="font-medium">${payment.amount.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Date</p>
+                          <p>{payment.date}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Method</p>
+                          <p>{payment.method}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Subscription</p>
+                          <p>{payment.subscription}</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="w-full mt-2 text-primary">
+                        View Details <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            ) : (
+              // Desktop view - Table layout
+              <ScrollArea className="h-[calc(100vh-24rem)] rounded-md">
+                <Table aria-label="Payment history">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Subscription</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell className="font-medium">{payment.id}</TableCell>
+                        <TableCell>{payment.customer}</TableCell>
+                        <TableCell>{payment.subscription}</TableCell>
+                        <TableCell>${payment.amount.toFixed(2)}</TableCell>
+                        <TableCell>{payment.method}</TableCell>
+                        <TableCell>{payment.date}</TableCell>
+                        <TableCell>{renderStatusBadge(payment.status)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            )}
           </CardContent>
         </Card>
       </div>

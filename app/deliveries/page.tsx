@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -239,8 +239,12 @@ export default function DeliveriesPage() {
   })
   const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
   const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false)
-  const [filteredDeliveries, setFilteredDeliveries] = useState(deliveries)
-  const [filteredPastDeliveries, setFilteredPastDeliveries] = useState(pastDeliveries)
+  const [filteredDeliveries, setFilteredDeliveries] = useState(
+    [...deliveries].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+  )
+  const [filteredPastDeliveries, setFilteredPastDeliveries] = useState(
+    [...pastDeliveries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+  )
   const [filters, setFilters] = useState({
     status: {
       Scheduled: false,
@@ -260,6 +264,25 @@ export default function DeliveriesPage() {
   const [activeFilterCount, setActiveFilterCount] = useState(0)
   const [isCancelConfirmDialogOpen, setIsCancelConfirmDialogOpen] = useState(false)
   const [deliveryToCancel, setDeliveryToCancel] = useState<string | null>(null)
+
+  // Mobile view detection
+  const [isMobileView, setIsMobileView] = useState(false)
+
+  // Check if we're in mobile view on component mount and window resize
+  useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobileView(window.innerWidth < 640)
+    }
+
+    // Initial check
+    checkMobileView()
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobileView)
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobileView)
+  }, [])
 
   const handleScheduleDelivery = () => {
     setIsScheduleDialogOpen(true)
@@ -743,6 +766,9 @@ export default function DeliveriesPage() {
       })
     }
 
+    result = result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    pastResult = pastResult.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
     setFilteredDeliveries(result)
     setFilteredPastDeliveries(pastResult)
 
@@ -800,19 +826,19 @@ export default function DeliveriesPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen w-full flex-col overflow-x-hidden">
       <DashboardHeader
         title="Deliveries"
         description="Schedule and track meal deliveries"
         actions={
           <Button aria-label="Schedule new delivery" className="gap-1 rounded-full" onClick={handleScheduleDelivery}>
             <Truck className="h-4 w-4" aria-hidden="true" />
-            Schedule Delivery
+            <span className="hidden sm:inline">Schedule Delivery</span>
           </Button>
         }
       />
-      <div className="dashboard-grid">
-        <Card className="stat-card">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-2 sm:p-4 w-full">
+        <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Deliveries</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -820,7 +846,7 @@ export default function DeliveriesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-xl sm:text-2xl font-bold">24</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">8</span>
               <span>completed</span>
@@ -832,7 +858,7 @@ export default function DeliveriesPage() {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">This Week</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -840,7 +866,7 @@ export default function DeliveriesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">342</div>
+            <div className="text-xl sm:text-2xl font-bold">342</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">+5%</span>
               <span>from last week</span>
@@ -848,7 +874,7 @@ export default function DeliveriesPage() {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Delivery Success Rate</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -856,17 +882,15 @@ export default function DeliveriesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98.5%</div>
+            <div className="text-xl sm:text-2xl font-bold">98.5%</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <span className="rounded-full bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
-                +0.3%
-              </span>
+              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">+0.3%</span>
               <span>last 30 days</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg. Delivery Time</CardTitle>
             <div className="rounded-full bg-primary/10 p-2 text-primary">
@@ -874,19 +898,17 @@ export default function DeliveriesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">42 min</div>
+            <div className="text-xl sm:text-2xl font-bold">42 min</div>
             <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <span className="rounded-full bg-green-500/10 px-1.5 py-0.5 text-xs font-medium text-green-500">
-                -3 min
-              </span>
+              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">-3 min</span>
               <span>from last month</span>
             </div>
           </CardContent>
         </Card>
       </div>
-      <div className="dashboard-section">
+      <div className="p-2 sm:p-4 w-full">
         <Tabs defaultValue="upcoming" onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 w-full justify-start rounded-full bg-muted/50 p-1">
+          <TabsList className="mb-4 sm:mb-6 w-full justify-start rounded-full bg-muted/50 p-1 text-xs sm:text-sm overflow-x-auto">
             <TabsTrigger value="upcoming" className="rounded-full">
               Upcoming Deliveries
             </TabsTrigger>
@@ -895,9 +917,9 @@ export default function DeliveriesPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="upcoming">
-            <Card className="table-container">
+            <Card className="w-full">
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                   <div>
                     <CardTitle>Upcoming Deliveries</CardTitle>
                     <CardDescription>View and manage scheduled deliveries</CardDescription>
@@ -907,7 +929,7 @@ export default function DeliveriesPage() {
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-1 rounded-full">
                           <Download className="h-4 w-4" />
-                          Export
+                          <span className="hidden sm:inline">Export</span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-56" align="end">
@@ -967,13 +989,15 @@ export default function DeliveriesPage() {
                           className={`gap-1 rounded-full ${activeFilterCount > 0 ? "bg-primary/20 text-primary" : ""}`}
                         >
                           <Filter className="h-4 w-4" />
-                          Filter
+                          <span className="hidden sm:inline">Filter</span>
                           {activeFilterCount > 0 && (
-                            <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-[10px]">{activeFilterCount}</Badge>
+                            <Badge className="ml-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px]">
+                              {activeFilterCount}
+                            </Badge>
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80" align="end">
+                      <PopoverContent className="w-[280px] sm:w-80" align="end">
                         <div className="grid gap-4">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium leading-none">Filter Deliveries</h4>
@@ -1146,8 +1170,8 @@ export default function DeliveriesPage() {
               </CardHeader>
               <CardContent>
                 {activeFilterCount > 0 && (
-                  <div className="mb-4 flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Active filters:</span>
+                  <div className="mb-4 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                    <span className="text-xs sm:text-sm text-muted-foreground">Active filters:</span>
 
                     {/* Status filter badges */}
                     {Object.entries(filters.status)
@@ -1217,127 +1241,235 @@ export default function DeliveriesPage() {
                     </Button>
                   </div>
                 )}
-                <Table aria-label="Upcoming deliveries">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Driver</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDeliveries.length > 0 ? (
-                      filteredDeliveries.map((delivery) => (
-                        <TableRow key={delivery.id} className="hover:bg-muted/50">
-                          <TableCell className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border border-border">
+
+                {isMobileView ? (
+                  // Mobile card view for deliveries
+                  <div className="space-y-3">
+                    {filteredDeliveries.map((delivery) => (
+                      <div key={delivery.id} className="mobile-table-card">
+                        <div className="mobile-table-card-header">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8 border border-border">
                               <AvatarImage
-                                src={`/placeholder.svg?height=36&width=36&text=${delivery.avatar}`}
+                                src={`/placeholder.svg?height=32&width=32&text=${delivery.avatar}`}
                                 alt={delivery.customer}
                               />
                               <AvatarFallback className="text-xs">{delivery.avatar}</AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{delivery.customer}</span>
-                              <span className="text-xs text-muted-foreground">{delivery.id}</span>
+                            <div>
+                              <div className="font-medium">{delivery.customer}</div>
+                              <div className="text-xs text-muted-foreground">{delivery.id}</div>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <Badge variant="outline" className="mb-1 w-fit bg-primary/10 text-primary">
-                                {delivery.date}
-                              </Badge>
-                              <div className="flex items-center gap-1 text-sm">
-                                <Clock className="h-3 w-3 text-muted-foreground" />
-                                <span>{delivery.timeSlot}</span>
-                              </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">More options</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleViewDetails(delivery)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleReschedule(delivery)}>
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Reschedule
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAssignDriver(delivery)}>
+                                <UserCheck className="mr-2 h-4 w-4" />
+                                Assign driver
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => confirmCancelDelivery(delivery.id)}
+                              >
+                                <X className="mr-2 h-4 w-4" />
+                                Cancel delivery
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="mobile-table-card-content mt-2">
+                          <div>
+                            <div className="mobile-table-card-label">Date</div>
+                            <Badge variant="outline" className="bg-primary/10 text-primary mt-1">
+                              {delivery.date}
+                            </Badge>
+                          </div>
+                          <div>
+                            <div className="mobile-table-card-label">Time</div>
+                            <div className="flex items-center gap-1 text-sm mt-1">
+                              <Clock className="h-3 w-3 text-muted-foreground" />
+                              <span>{delivery.timeSlot}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-start gap-1">
+                          </div>
+                          <div>
+                            <div className="mobile-table-card-label">Address</div>
+                            <div className="flex items-start gap-1 mt-1">
                               <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
                               <span className="text-sm">{delivery.address}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>{delivery.items}</TableCell>
-                          <TableCell>{delivery.driver}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-full"
-                                onClick={() => handleEditDelivery(delivery)}
-                              >
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit {delivery.customer}</span>
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">More options</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => handleViewDetails(delivery)}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleReschedule(delivery)}>
-                                    <Calendar className="mr-2 h-4 w-4" />
-                                    Reschedule
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleAssignDriver(delivery)}>
-                                    <UserCheck className="mr-2 h-4 w-4" />
-                                    Assign driver
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() => confirmCancelDelivery(delivery.id)}
-                                  >
-                                    <X className="mr-2 h-4 w-4" />
-                                    Cancel delivery
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <div className="rounded-full bg-muted p-3">
-                              <Package className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                            <div className="text-center">
-                              <p className="text-sm font-medium">No deliveries found</p>
-                              <p className="text-sm text-muted-foreground">
-                                Try adjusting your filters or schedule a new delivery
-                              </p>
-                            </div>
-                            <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
-                              Reset filters
-                            </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                          <div>
+                            <div className="mobile-table-card-label">Driver</div>
+                            <div className="mobile-table-card-value">{delivery.driver}</div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="mobile-table-card-label">Items</div>
+                            <div className="mobile-table-card-value">{delivery.items}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Desktop table view
+                  <div className="w-full overflow-auto">
+                    <Table className="min-w-[800px] lg:min-w-full" aria-label="Upcoming deliveries">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Address</TableHead>
+                          <TableHead>Items</TableHead>
+                          <TableHead>Driver</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredDeliveries.length > 0 ? (
+                          filteredDeliveries.map((delivery) => (
+                            <TableRow key={delivery.id} className="hover:bg-muted/50">
+                              <TableCell className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9 border border-border">
+                                  <AvatarImage
+                                    src={`/placeholder.svg?height=36&width=36&text=${delivery.avatar}`}
+                                    alt={delivery.customer}
+                                  />
+                                  <AvatarFallback className="text-xs">{delivery.avatar}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{delivery.customer}</span>
+                                  <span className="text-xs text-muted-foreground">{delivery.id}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <Badge variant="outline" className="mb-1 w-fit bg-primary/10 text-primary">
+                                    {delivery.date}
+                                  </Badge>
+                                  <div className="flex items-center gap-1 text-sm">
+                                    <Clock className="h-3 w-3 text-muted-foreground" />
+                                    <span>{delivery.timeSlot}</span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-start gap-1">
+                                  <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+                                  <span className="text-sm">{delivery.address}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>{delivery.items}</TableCell>
+                              <TableCell>{delivery.driver}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full"
+                                    onClick={() => handleEditDelivery(delivery)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                    <span className="sr-only">Edit {delivery.customer}</span>
+                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">More options</span>
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleViewDetails(delivery)}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View details
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleReschedule(delivery)}>
+                                        <Calendar className="mr-2 h-4 w-4" />
+                                        Reschedule
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleAssignDriver(delivery)}>
+                                        <UserCheck className="mr-2 h-4 w-4" />
+                                        Assign driver
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        className="text-destructive"
+                                        onClick={() => confirmCancelDelivery(delivery.id)}
+                                      >
+                                        <X className="mr-2 h-4 w-4" />
+                                        Cancel delivery
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className="h-24 text-center">
+                              <div className="flex flex-col items-center justify-center gap-2">
+                                <div className="rounded-full bg-muted p-3">
+                                  <Package className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-sm font-medium">No deliveries found</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Try adjusting your filters or schedule a new delivery
+                                  </p>
+                                </div>
+                                <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
+                                  Reset filters
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                {filteredDeliveries.length === 0 && (
+                  <div className="flex flex-col items-center justify-center gap-2 py-8">
+                    <div className="rounded-full bg-muted p-3">
+                      <Package className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">No deliveries found</p>
+                      <p className="text-sm text-muted-foreground">
+                        Try adjusting your filters or schedule a new delivery
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
+                      Reset filters
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="past">
-            <Card className="table-container">
+            <Card className="w-full">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1411,7 +1543,9 @@ export default function DeliveriesPage() {
                           <Filter className="h-4 w-4" />
                           Filter
                           {activeFilterCount > 0 && (
-                            <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-[10px]">{activeFilterCount}</Badge>
+                            <Badge className="ml-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px]">
+                              {activeFilterCount}
+                            </Badge>
                           )}
                         </Button>
                       </PopoverTrigger>
@@ -1420,104 +1554,108 @@ export default function DeliveriesPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Driver</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPastDeliveries.length > 0 ? (
-                      filteredPastDeliveries.map((delivery) => (
-                        <TableRow key={delivery.id} className="hover:bg-muted/50">
-                          <TableCell className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border border-border">
-                              <AvatarImage
-                                src={`/placeholder.svg?height=36&width=36&text=${delivery.avatar}`}
-                                alt={delivery.customer}
-                              />
-                              <AvatarFallback className="text-xs">{delivery.avatar}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{delivery.customer}</span>
-                              <span className="text-xs text-muted-foreground">{delivery.id}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <Badge variant="outline" className="mb-1 w-fit bg-muted/80 text-muted-foreground">
-                                {delivery.date}
-                              </Badge>
-                              <div className="flex items-center gap-1 text-sm">
-                                <Clock className="h-3 w-3 text-muted-foreground" />
-                                <span>{delivery.timeSlot}</span>
+                <div className="w-full overflow-auto">
+                  <Table className="min-w-[800px] lg:min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Date & Time</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Driver</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredPastDeliveries.length > 0 ? (
+                        filteredPastDeliveries.map((delivery) => (
+                          <TableRow key={delivery.id} className="hover:bg-muted/50">
+                            <TableCell className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9 border border-border">
+                                <AvatarImage
+                                  src={`/placeholder.svg?height=36&width=36&text=${delivery.avatar}`}
+                                  alt={delivery.customer}
+                                />
+                                <AvatarFallback className="text-xs">{delivery.avatar}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{delivery.customer}</span>
+                                <span className="text-xs text-muted-foreground">{delivery.id}</span>
                               </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <Badge variant="outline" className="mb-1 w-fit bg-muted/80 text-muted-foreground">
+                                  {delivery.date}
+                                </Badge>
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Clock className="h-3 w-3 text-muted-foreground" />
+                                  <span>{delivery.timeSlot}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-start gap-1">
+                                <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+                                <span className="text-sm">{delivery.address}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{delivery.items}</TableCell>
+                            <TableCell>{delivery.driver}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={delivery.status === "Delivered" ? "default" : "destructive"}
+                                className={
+                                  delivery.status === "Delivered"
+                                    ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                    : ""
+                                }
+                              >
+                                {delivery.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <div className="rounded-full bg-muted p-3">
+                                <Package className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                              <div className="text-center">
+                                <p className="text-sm font-medium">No past deliveries found</p>
+                                <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+                              </div>
+                              <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
+                                Reset filters
+                              </Button>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-start gap-1">
-                              <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
-                              <span className="text-sm">{delivery.address}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{delivery.items}</TableCell>
-                          <TableCell>{delivery.driver}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={delivery.status === "Delivered" ? "default" : "destructive"}
-                              className={
-                                delivery.status === "Delivered" ? "bg-primary/20 text-primary hover:bg-primary/30" : ""
-                              }
-                            >
-                              {delivery.status}
-                            </Badge>
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <div className="rounded-full bg-muted p-3">
-                              <Package className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                            <div className="text-center">
-                              <p className="text-sm font-medium">No past deliveries found</p>
-                              <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
-                            </div>
-                            <Button variant="outline" size="sm" className="mt-2" onClick={resetFilters}>
-                              Reset filters
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Schedule Delivery Dialog */}
+      {/* Dialogs with mobile optimizations */}
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[550px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Schedule New Delivery</DialogTitle>
             <DialogDescription>Create a new delivery for a customer. Fill in all the details below.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customer" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="customer" className="sm:text-right">
                 Customer
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Select onValueChange={handleCustomerSelect}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a customer" />
@@ -1533,11 +1671,11 @@ export default function DeliveriesPage() {
                 {formErrors.customer && <p className="mt-1 text-xs text-destructive">{formErrors.customer}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="address" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="address" className="sm:text-right">
                 Address
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Input
                   id="address"
                   value={newDelivery.address}
@@ -1548,44 +1686,46 @@ export default function DeliveriesPage() {
                 {formErrors.address && <p className="mt-1 text-xs text-destructive">{formErrors.address}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="date" className="sm:text-right">
                 Date
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Input
                   id="date"
                   type="date"
                   value={newDelivery.date}
                   onChange={(e) => handleNewDeliveryChange("date", e.target.value)}
                   className={formErrors.date ? "border-destructive" : ""}
-                  min={new Date().toISOString().split("T")[0]} // Add this line to restrict to today or future dates
+                  min={new Date().toISOString().split("T")[0]}
                 />
                 {formErrors.date && <p className="mt-1 text-xs text-destructive">{formErrors.date}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="timeSlot" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="timeSlot" className="sm:text-right">
                 Time Slot
               </Label>
-              <Select
-                defaultValue={newDelivery.timeSlot}
-                onValueChange={(value) => handleNewDeliveryChange("timeSlot", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a time slot" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="morning">Morning (9:00 AM - 12:00 PM)</SelectItem>
-                  <SelectItem value="afternoon">Afternoon (1:00 PM - 4:00 PM)</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="sm:col-span-3">
+                <Select
+                  defaultValue={newDelivery.timeSlot}
+                  onValueChange={(value) => handleNewDeliveryChange("timeSlot", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a time slot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Morning (9:00 AM - 12:00 PM)</SelectItem>
+                    <SelectItem value="afternoon">Afternoon (1:00 PM - 4:00 PM)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="items" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="items" className="sm:text-right">
                 Items
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Select onValueChange={handleItemsSelect}>
                   <SelectTrigger className={formErrors.items ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select meal plan" />
@@ -1601,11 +1741,11 @@ export default function DeliveriesPage() {
                 {formErrors.items && <p className="mt-1 text-xs text-destructive">{formErrors.items}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="driver" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+              <Label htmlFor="driver" className="sm:text-right">
                 Driver
               </Label>
-              <div className="col-span-3">
+              <div className="sm:col-span-3">
                 <Select onValueChange={handleDriverSelect}>
                   <SelectTrigger className={formErrors.driver ? "border-destructive" : ""}>
                     <SelectValue placeholder="Assign a driver" />
@@ -1622,28 +1762,31 @@ export default function DeliveriesPage() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button type="submit" onClick={handleAddDelivery} disabled={isSubmitting}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button type="submit" onClick={handleAddDelivery} disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Scheduling..." : "Schedule Delivery"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Delivery Dialog */}
+      {/* Other dialogs with similar mobile optimizations */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[550px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Edit Delivery</DialogTitle>
             <DialogDescription>Update delivery details for this order.</DialogDescription>
           </DialogHeader>
           {selectedDelivery && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-customer" className="text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+                <Label htmlFor="edit-customer" className="sm:text-right">
                   Customer
                 </Label>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Input
                     id="edit-customer"
                     value={selectedDelivery.customer}
@@ -1654,11 +1797,11 @@ export default function DeliveriesPage() {
                   {formErrors.customer && <p className="mt-1 text-xs text-destructive">{formErrors.customer}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-address" className="text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+                <Label htmlFor="edit-address" className="sm:text-right">
                   Address
                 </Label>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Input
                     id="edit-address"
                     value={selectedDelivery.address}
@@ -1668,49 +1811,51 @@ export default function DeliveriesPage() {
                   {formErrors.address && <p className="mt-1 text-xs text-destructive">{formErrors.address}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-date" className="text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+                <Label htmlFor="edit-date" className="sm:text-right">
                   Date
                 </Label>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Input
                     id="edit-date"
                     type="date"
                     value={selectedDelivery.date}
                     onChange={(e) => handleSelectedDeliveryChange("date", e.target.value)}
                     className={formErrors.date ? "border-destructive" : ""}
-                    min={new Date().toISOString().split("T")[0]} // Add this line to restrict to today or future dates
+                    min={new Date().toISOString().split("T")[0]}
                   />
                   {formErrors.date && <p className="mt-1 text-xs text-destructive">{formErrors.date}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-timeSlot" className="text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+                <Label htmlFor="edit-timeSlot" className="sm:text-right">
                   Time Slot
                 </Label>
-                <Select
-                  value={selectedDelivery.timeSlot === "9:00 AM - 12:00 PM" ? "morning" : "afternoon"}
-                  onValueChange={(value) =>
-                    handleSelectedDeliveryChange(
-                      "timeSlot",
-                      value === "morning" ? "9:00 AM - 12:00 PM" : "1:00 PM - 4:00 PM",
-                    )
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a time slot" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="morning">Morning (9:00 AM - 12:00 PM)</SelectItem>
-                    <SelectItem value="afternoon">Afternoon (1:00 PM - 4:00 PM)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="sm:col-span-3">
+                  <Select
+                    value={selectedDelivery.timeSlot === "9:00 AM - 12:00 PM" ? "morning" : "afternoon"}
+                    onValueChange={(value) =>
+                      handleSelectedDeliveryChange(
+                        "timeSlot",
+                        value === "morning" ? "9:00 AM - 12:00 PM" : "1:00 PM - 4:00 PM",
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a time slot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="morning">Morning (9:00 AM - 12:00 PM)</SelectItem>
+                      <SelectItem value="afternoon">Afternoon (1:00 PM - 4:00 PM)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-items" className="text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+                <Label htmlFor="edit-items" className="sm:text-right">
                   Items
                 </Label>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Select
                     value={mealPlans.find((plan) => plan.name === selectedDelivery.items)?.id || ""}
                     onValueChange={handleEditItemsSelect}
@@ -1729,11 +1874,11 @@ export default function DeliveriesPage() {
                   {formErrors.items && <p className="mt-1 text-xs text-destructive">{formErrors.items}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-driver" className="text-right">
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4 form-grid">
+                <Label htmlFor="edit-driver" className="sm:text-right">
                   Driver
                 </Label>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Select
                     value={drivers.find((driver) => driver.name === selectedDelivery.driver)?.id || ""}
                     onValueChange={handleEditDriverSelect}
@@ -1754,20 +1899,19 @@ export default function DeliveriesPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" onClick={handleUpdateDelivery} disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Delivery"}
+            <Button type="submit" onClick={handleUpdateDelivery} disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? "Update Delivery" : "Updating..."}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Reschedule Dialog */}
       <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[450px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Reschedule Delivery</DialogTitle>
             <DialogDescription>Change the date and time for this delivery.</DialogDescription>
@@ -1782,7 +1926,7 @@ export default function DeliveriesPage() {
                   value={selectedDelivery.date}
                   onChange={(e) => handleSelectedDeliveryChange("date", e.target.value)}
                   className={formErrors.date ? "border-destructive" : ""}
-                  min={new Date().toISOString().split("T")[0]} // Add this line to restrict to today or future dates
+                  min={new Date().toISOString().split("T")[0]}
                 />
                 {formErrors.date && <p className="text-xs text-destructive">{formErrors.date}</p>}
               </div>
@@ -1808,20 +1952,19 @@ export default function DeliveriesPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleRescheduleDelivery} disabled={isSubmitting}>
+            <Button onClick={handleRescheduleDelivery} disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Rescheduling..." : "Reschedule"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Assign Driver Dialog */}
       <Dialog open={isAssignDriverDialogOpen} onOpenChange={setIsAssignDriverDialogOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[450px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Assign Driver</DialogTitle>
             <DialogDescription>Change the assigned driver for this delivery.</DialogDescription>
@@ -1849,20 +1992,19 @@ export default function DeliveriesPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAssignDriverDialogOpen(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsAssignDriverDialogOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleAssignDriverSubmit} disabled={isSubmitting}>
+            <Button onClick={handleAssignDriverSubmit} disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Assigning..." : "Assign Driver"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Cancel Confirmation Dialog */}
       <Dialog open={isCancelConfirmDialogOpen} onOpenChange={setIsCancelConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-[95vw] sm:max-w-[425px] overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Cancel Delivery</DialogTitle>
             <DialogDescription>
@@ -1870,11 +2012,11 @@ export default function DeliveriesPage() {
               list.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsCancelConfirmDialogOpen(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsCancelConfirmDialogOpen(false)} className="w-full sm:w-auto">
               No, keep it
             </Button>
-            <Button variant="destructive" onClick={handleCancelDelivery}>
+            <Button variant="destructive" onClick={handleCancelDelivery} className="w-full sm:w-auto">
               Yes, cancel delivery
             </Button>
           </DialogFooter>

@@ -98,7 +98,10 @@ interface RecentOrdersProps {
 export function RecentOrders({ onViewAll, onViewLess, showAll = false }: RecentOrdersProps) {
   const [viewAll, setViewAll] = useState(showAll)
 
-  const displayedOrders = viewAll ? recentOrders : recentOrders.slice(0, 5)
+  // Sort orders by date (most recent first)
+  const displayedOrders = viewAll
+    ? [...recentOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    : [...recentOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5)
 
   const handleToggleView = () => {
     const newState = !viewAll

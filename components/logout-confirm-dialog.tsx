@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 interface LogoutConfirmDialogProps {
   open: boolean
@@ -18,6 +19,34 @@ interface LogoutConfirmDialogProps {
 }
 
 export function LogoutConfirmDialog({ open, onOpenChange, onConfirm }: LogoutConfirmDialogProps) {
+  const handleLogout = () => {
+    // In a real app, this would handle the actual logout process
+    // For example: signOut() or auth.logout()
+
+    // Simulate logout with a delay
+    toast.loading("Logging out...")
+
+    setTimeout(() => {
+      toast.dismiss()
+      toast.success("Logged out successfully", {
+        description: "You have been logged out of your account.",
+        action: {
+          label: "Login again",
+          onClick: () => {
+            toast.info("Login page", {
+              description: "In a real app, this would redirect to the login page",
+            })
+          },
+        },
+      })
+
+      // In a real app, this would redirect to a login page
+      // For demo purposes, we'll just close the dialog
+      onOpenChange(false)
+      onConfirm()
+    }, 1000)
+  }
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -29,7 +58,7 @@ export function LogoutConfirmDialog({ open, onOpenChange, onConfirm }: LogoutCon
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Log out</AlertDialogAction>
+          <AlertDialogAction onClick={handleLogout}>Log out</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

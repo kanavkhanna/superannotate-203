@@ -47,7 +47,7 @@ export function SubscriberStats() {
           />
         </PieChart>
       </ResponsiveContainer>
-      <div className="mt-6 flex justify-center gap-4 px-2">
+      <div className="mt-6 flex flex-wrap justify-center gap-4 px-2">
         {data.map((item) => (
           <div key={item.name} className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} aria-hidden="true" />
