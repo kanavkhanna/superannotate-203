@@ -1,0 +1,18 @@
+.analytics-tab-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.analytics-chart-container {
+  width: 100%;
+  min-width: 600px;
+  height: 450px;
+}
+
+@media (max-width: 640px) {
+  .analytics-chart-container {
+    min-width: 400px;
+  }
+}
+
